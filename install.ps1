@@ -13,9 +13,21 @@ if (!(Test-Path $dest)) {
 
 Write-Host "Descargando MISTRALApp..." -ForegroundColor Yellow
 
-# Descargar EXE
+# URL del exe
 $url = "https://github.com/bicmantis-source/alien-/releases/latest/download/alien.exe"
-Invoke-WebRequest -Uri $url -OutFile $exe
+
+# Descargar con método seguro
+try {
+    Invoke-WebRequest -Uri $url -OutFile $exe -UseBasicParsing
+} catch {
+    Write-Host "Fallo con Invoke-WebRequest, intentando método alternativo..." -ForegroundColor Red
+    try {
+        (New-Object System.Net.WebClient).DownloadFile($url, $exe)
+    } catch {
+        Write-Host "Error al descargar el archivo." -ForegroundColor Red
+        exit
+    }
+}
 
 Write-Host "Creando acceso directo..." -ForegroundColor Yellow
 
