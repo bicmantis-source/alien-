@@ -6,32 +6,35 @@ $dest = "$env:LOCALAPPDATA\MISTRALApp"
 $exe = "$dest\MISTRALApp.exe"
 $desktop = [Environment]::GetFolderPath("Desktop")
 
-# Crear carpeta
+# Crear carpeta si no existe
 if (!(Test-Path $dest)) {
     New-Item -ItemType Directory -Path $dest | Out-Null
 }
 
 Write-Host "Descargando MISTRALApp..." -ForegroundColor Yellow
 
-# URL del exe
-$url = "https://github.com/bicmantis-source/alien-/releases/latest/download/alien.exe"
+# URL CORRECTA DEL EXE
+$url = "https://github.com/bicmantis-source/alien-/releases/download/v1.0/MISTRAL.exe"
 
-# Descargar con método seguro
+# Descarga robusta (funciona con archivos grandes)
 try {
-    Invoke-WebRequest -Uri $url -OutFile $exe -UseBasicParsing
+    $wc = New-Object System.Net.WebClient
+    $wc.Headers.Add("User-Agent", "Mozilla/5.0")
+    $wc.DownloadFile($url, $exe)
 } catch {
-    Write-Host "Fallo con Invoke-WebRequest, intentando método alternativo..." -ForegroundColor Red
-    try {
-        (New-Object System.Net.WebClient).DownloadFile($url, $exe)
-    } catch {
-        Write-Host "Error al descargar el archivo." -ForegroundColor Red
-        exit
-    }
+    Write-Host "Error al descargar el archivo desde GitHub." -ForegroundColor Red
+    exit
+}
+
+# Verificar que se descargó
+if (!(Test-Path $exe)) {
+    Write-Host "El archivo no se descargó correctamente." -ForegroundColor Red
+    exit
 }
 
 Write-Host "Creando acceso directo..." -ForegroundColor Yellow
 
-# Crear acceso directo
+# Crear acceso directo en escritorio
 $WScriptShell = New-Object -ComObject WScript.Shell
 $shortcut = $WScriptShell.CreateShortcut("$desktop\MISTRALApp.lnk")
 $shortcut.TargetPath = $exe
@@ -40,7 +43,7 @@ $shortcut.Save()
 
 Write-Host "Ejecutando MISTRALApp..." -ForegroundColor Green
 
-# Ejecutar
+# Ejecutar app
 Start-Process $exe
 
 Write-Host "Instalación de MISTRALApp completada" -ForegroundColor Green
