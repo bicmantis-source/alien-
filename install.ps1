@@ -1,6 +1,6 @@
 $ErrorActionPreference = "Stop"
 
-Write-Host "Instalando AlienApp..." -ForegroundColor Cyan
+Write-Host "Instalando MISTRALApp..." -ForegroundColor Cyan
 
 $dest = "$env:LOCALAPPDATA\AlienApp"
 $exe = "$dest\alien.exe"
