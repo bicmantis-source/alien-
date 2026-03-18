@@ -15,7 +15,7 @@ Write-Host "Descargando MISTRALApp..." -ForegroundColor Yellow
 
 # Descargar EXE
 $url = "https://github.com/bicmantis-source/alien-/releases/latest/download/alien.exe"
-Start-BitsTransfer -Source $url -Destination $exe
+Invoke-WebRequest -Uri $url -OutFile $exe
 
 Write-Host "Creando acceso directo..." -ForegroundColor Yellow
 
