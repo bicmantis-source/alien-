@@ -12,24 +12,25 @@ if (!(Test-Path $dest)) {
 }
 
 # ==============================
-# INSTALAR OLLAMA PRIMERO
+# INSTALAR OLLAMA (FORMA PRO)
 # ==============================
 
 Write-Host "Verificando Ollama..." -ForegroundColor Yellow
 
-$ollamaPath = "$env:LOCALAPPDATA\Programs\Ollama\ollama.exe"
+$ollamaExe = "$env:LOCALAPPDATA\Programs\Ollama\ollama.exe"
 
-if (!(Test-Path $ollamaPath)) {
+if (!(Test-Path $ollamaExe)) {
 
-    Write-Host "Ollama no encontrado. Descargando..." -ForegroundColor Yellow
+    Write-Host "Ollama no encontrado. Instalando..." -ForegroundColor Yellow
 
-    $ollamaInstaller = "$env:TEMP\OllamaSetup.exe"
+    $installer = "$env:TEMP\OllamaSetup.exe"
     $ollamaUrl = "https://ollama.com/download/OllamaSetup.exe"
 
     try {
+        # Descarga robusta
         $wc = New-Object System.Net.WebClient
         $wc.Headers.Add("User-Agent", "Mozilla/5.0")
-        $wc.DownloadFile($ollamaUrl, $ollamaInstaller)
+        $wc.DownloadFile($ollamaUrl, $installer)
     } catch {
         Write-Host "Error descargando Ollama." -ForegroundColor Red
         exit
@@ -37,21 +38,36 @@ if (!(Test-Path $ollamaPath)) {
 
     Write-Host "Instalando Ollama..." -ForegroundColor Yellow
 
-    Start-Process -FilePath $ollamaInstaller -ArgumentList "/S" -Wait
+    # Instalación silenciosa
+    Start-Process -FilePath $installer -ArgumentList "/S" -Wait
 
+    # Esperar a que termine de registrarse
     Start-Sleep -Seconds 5
+
+    # Verificar instalación
+    if (!(Test-Path $ollamaExe)) {
+        Write-Host "Ollama no se instaló correctamente." -ForegroundColor Red
+        exit
+    }
+
+    Write-Host "Ollama instalado correctamente." -ForegroundColor Green
+}
+else {
+    Write-Host "Ollama ya está instalado." -ForegroundColor Green
 }
 
 # ==============================
-# DESCARGAR MODELO (IMPORTANTE)
+# ASEGURAR QUE OLLAMA FUNCIONE
 # ==============================
 
-Write-Host "Descargando modelo IA..." -ForegroundColor Yellow
+Write-Host "Iniciando Ollama..." -ForegroundColor Yellow
 
 try {
-    Start-Process "ollama" -ArgumentList "pull mistral" -Wait
+    # Intentar iniciar servicio en segundo plano
+    Start-Process "$env:LOCALAPPDATA\Programs\Ollama\ollama.exe" -ArgumentList "serve" -WindowStyle Hidden
+    Start-Sleep -Seconds 3
 } catch {
-    Write-Host "No se pudo descargar el modelo automáticamente." -ForegroundColor Red
+    Write-Host "No se pudo iniciar Ollama automáticamente." -ForegroundColor Red
 }
 
 # ==============================
@@ -60,12 +76,12 @@ try {
 
 Write-Host "Descargando MISTRALApp..." -ForegroundColor Yellow
 
-$url = "https://github.com/bicmantis-source/alien-/releases/download/v1.0/MISTRAL.exe"
+$appUrl = "https://github.com/bicmantis-source/alien-/releases/download/v1.0/MISTRAL.exe"
 
 try {
     $wc = New-Object System.Net.WebClient
     $wc.Headers.Add("User-Agent", "Mozilla/5.0")
-    $wc.DownloadFile($url, $exe)
+    $wc.DownloadFile($appUrl, $exe)
 } catch {
     Write-Host "Error al descargar el archivo desde GitHub." -ForegroundColor Red
     exit
@@ -90,11 +106,11 @@ $shortcut.WorkingDirectory = $dest
 $shortcut.Save()
 
 # ==============================
-# EJECUTAR APP (YA CON OLLAMA)
+# EJECUTAR APP
 # ==============================
 
 Write-Host "Ejecutando MISTRALApp..." -ForegroundColor Green
 
 Start-Process $exe
 
-Write-Host "Instalación de MISTRALApp completada" -ForegroundColor Green
+Write-Host "Instalación completada correctamente (App + Ollama listo)" -ForegroundColor Green
