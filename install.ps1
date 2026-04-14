@@ -6,13 +6,13 @@ $dest = "$env:LOCALAPPDATA\MISTRALApp"
 $exe = "$dest\MISTRALApp.exe"
 $desktop = [Environment]::GetFolderPath("Desktop")
 
-# Crear carpeta si no existe
+# Crear carpeta
 if (!(Test-Path $dest)) {
     New-Item -ItemType Directory -Path $dest | Out-Null
 }
 
 # ==============================
-# INSTALAR OLLAMA (FORMA PRO)
+# INSTALAR OLLAMA
 # ==============================
 
 Write-Host "Verificando Ollama..." -ForegroundColor Yellow
@@ -27,24 +27,22 @@ if (!(Test-Path $ollamaExe)) {
     $ollamaUrl = "https://ollama.com/download/OllamaSetup.exe"
 
     try {
-        # Descarga robusta
-        $wc = New-Object System.Net.WebClient
-        $wc.Headers.Add("User-Agent", "Mozilla/5.0")
-        $wc.DownloadFile($ollamaUrl, $installer)
+        Invoke-WebRequest -Uri $ollamaUrl -OutFile $installer -UseBasicParsing
     } catch {
-        Write-Host "Error descargando Ollama." -ForegroundColor Red
-        exit
+        Write-Host "Fallo con Invoke-WebRequest, usando método alternativo..." -ForegroundColor Red
+        try {
+            (New-Object System.Net.WebClient).DownloadFile($ollamaUrl, $installer)
+        } catch {
+            Write-Host "Error descargando Ollama." -ForegroundColor Red
+            exit
+        }
     }
 
     Write-Host "Instalando Ollama..." -ForegroundColor Yellow
-
-    # Instalación silenciosa
     Start-Process -FilePath $installer -ArgumentList "/S" -Wait
 
-    # Esperar a que termine de registrarse
     Start-Sleep -Seconds 5
 
-    # Verificar instalación
     if (!(Test-Path $ollamaExe)) {
         Write-Host "Ollama no se instaló correctamente." -ForegroundColor Red
         exit
@@ -57,21 +55,32 @@ else {
 }
 
 # ==============================
-# ASEGURAR QUE OLLAMA FUNCIONE
+# INICIAR OLLAMA (OCULTO)
 # ==============================
 
 Write-Host "Iniciando Ollama..." -ForegroundColor Yellow
 
 try {
-    # Intentar iniciar servicio en segundo plano
-    Start-Process "$env:LOCALAPPDATA\Programs\Ollama\ollama.exe" -ArgumentList "serve" -WindowStyle Hidden
+    Start-Process $ollamaExe -ArgumentList "serve" -WindowStyle Hidden
     Start-Sleep -Seconds 3
 } catch {
     Write-Host "No se pudo iniciar Ollama automáticamente." -ForegroundColor Red
 }
 
 # ==============================
-# DESCARGAR TU EXE
+# DESCARGAR MODELO (OPCIONAL)
+# ==============================
+
+Write-Host "Preparando modelo IA..." -ForegroundColor Yellow
+
+try {
+    Start-Process $ollamaExe -ArgumentList "pull mistral" -WindowStyle Hidden
+} catch {
+    Write-Host "No se pudo descargar el modelo automáticamente." -ForegroundColor Red
+}
+
+# ==============================
+# DESCARGAR EXE
 # ==============================
 
 Write-Host "Descargando MISTRALApp..." -ForegroundColor Yellow
@@ -79,15 +88,17 @@ Write-Host "Descargando MISTRALApp..." -ForegroundColor Yellow
 $appUrl = "https://github.com/bicmantis-source/alien-/releases/download/v1.0/MISTRAL.exe"
 
 try {
-    $wc = New-Object System.Net.WebClient
-    $wc.Headers.Add("User-Agent", "Mozilla/5.0")
-    $wc.DownloadFile($appUrl, $exe)
+    Invoke-WebRequest -Uri $appUrl -OutFile $exe -UseBasicParsing
 } catch {
-    Write-Host "Error al descargar el archivo desde GitHub." -ForegroundColor Red
-    exit
+    Write-Host "Fallo con Invoke-WebRequest, usando método alternativo..." -ForegroundColor Red
+    try {
+        (New-Object System.Net.WebClient).DownloadFile($appUrl, $exe)
+    } catch {
+        Write-Host "Error al descargar el EXE." -ForegroundColor Red
+        exit
+    }
 }
 
-# Verificar descarga
 if (!(Test-Path $exe)) {
     Write-Host "El archivo no se descargó correctamente." -ForegroundColor Red
     exit
@@ -113,4 +124,4 @@ Write-Host "Ejecutando MISTRALApp..." -ForegroundColor Green
 
 Start-Process $exe
 
-Write-Host "Instalación completada correctamente (App + Ollama listo)" -ForegroundColor Green
+Write-Host "Instalación completada correctamente" -ForegroundColor Green
