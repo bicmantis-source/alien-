@@ -55,28 +55,34 @@ else {
 }
 
 # ==============================
-# INICIAR OLLAMA (OCULTO)
+# INICIAR OLLAMA
 # ==============================
 
 Write-Host "Iniciando Ollama..." -ForegroundColor Yellow
 
 try {
     Start-Process $ollamaExe -ArgumentList "serve" -WindowStyle Hidden
-    Start-Sleep -Seconds 3
+    Start-Sleep -Seconds 5
 } catch {
     Write-Host "No se pudo iniciar Ollama automáticamente." -ForegroundColor Red
 }
 
 # ==============================
-# DESCARGAR MODELO (OPCIONAL)
+# DESCARGAR MODELO (SI NO EXISTE)
 # ==============================
 
-Write-Host "Preparando modelo IA..." -ForegroundColor Yellow
+Write-Host "Verificando modelo IA..." -ForegroundColor Yellow
 
 try {
-    Start-Process $ollamaExe -ArgumentList "pull mistral" -WindowStyle Hidden
+    $models = & $ollamaExe list
+    if ($models -notmatch "mistral") {
+        Write-Host "Descargando modelo mistral..." -ForegroundColor Yellow
+        Start-Process $ollamaExe -ArgumentList "pull mistral" -WindowStyle Hidden
+    } else {
+        Write-Host "Modelo mistral ya instalado." -ForegroundColor Green
+    }
 } catch {
-    Write-Host "No se pudo descargar el modelo automáticamente." -ForegroundColor Red
+    Write-Host "No se pudo verificar el modelo." -ForegroundColor Red
 }
 
 # ==============================
@@ -99,10 +105,14 @@ try {
     }
 }
 
+# Verificar descarga
 if (!(Test-Path $exe)) {
     Write-Host "El archivo no se descargó correctamente." -ForegroundColor Red
     exit
 }
+
+# Desbloquear archivo (evita bloqueo de Windows)
+Unblock-File -Path $exe -ErrorAction SilentlyContinue
 
 # ==============================
 # CREAR ACCESO DIRECTO
@@ -114,7 +124,14 @@ $WScriptShell = New-Object -ComObject WScript.Shell
 $shortcut = $WScriptShell.CreateShortcut("$desktop\MISTRALApp.lnk")
 $shortcut.TargetPath = $exe
 $shortcut.WorkingDirectory = $dest
+$shortcut.IconLocation = $exe
 $shortcut.Save()
+
+# ==============================
+# ABRIR PÁGINA WEB
+# ==============================
+
+Start-Process "https://bicmantis-source.github.io/alien-/index.html"
 
 # ==============================
 # EJECUTAR APP
