@@ -51,7 +51,7 @@ try {
 }
 
 # ==============================
-# DESCARGAR MODELO (SI NO EXISTE)
+# DESCARGAR MODELO
 # ==============================
 
 Write-Host "Verificando modelo IA..." -ForegroundColor Yellow
@@ -61,13 +61,15 @@ try {
     if ($models -notmatch "mistral") {
         Write-Host "Descargando modelo mistral..." -ForegroundColor Yellow
         Start-Process $ollamaExe -ArgumentList "pull mistral" -WindowStyle Hidden
+    } else {
+        Write-Host "Modelo ya instalado." -ForegroundColor Green
     }
 } catch {
     Write-Host "No se pudo verificar el modelo." -ForegroundColor Red
 }
 
 # ==============================
-# DESCARGAR EXE (ARREGLADO)
+# DESCARGAR EXE (SOLUCIÓN REAL)
 # ==============================
 
 Write-Host "Descargando MISTRALApp..." -ForegroundColor Yellow
@@ -75,13 +77,12 @@ Write-Host "Descargando MISTRALApp..." -ForegroundColor Yellow
 $appUrl = "https://github.com/bicmantis-source/alien-/releases/latest/download/MISTRAL.exe"
 
 try {
-    Invoke-WebRequest -Uri $appUrl -OutFile $exe -MaximumRedirection 10 -UseBasicParsing
+    curl.exe -L $appUrl -o $exe
 } catch {
     Write-Host "Error descargando desde GitHub." -ForegroundColor Red
     exit
 }
 
-# Verificar descarga
 if (!(Test-Path $exe)) {
     Write-Host "El archivo no se descargó correctamente." -ForegroundColor Red
     exit
@@ -107,7 +108,7 @@ $shortcut.Save()
 # ABRIR WEB
 # ==============================
 
-Start-Process "https://bicmantis-source.github.io/alien-/web.html"
+Start-Process "https://bicmantis-source.github.io/alien-/index.html"
 
 # ==============================
 # EJECUTAR APP
