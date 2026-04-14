@@ -86,7 +86,7 @@ try {
 }
 
 # ==============================
-# DESCARGAR EXE
+# DESCARGAR EXE (ARREGLADO)
 # ==============================
 
 Write-Host "Descargando MISTRALApp..." -ForegroundColor Yellow
@@ -94,15 +94,13 @@ Write-Host "Descargando MISTRALApp..." -ForegroundColor Yellow
 $appUrl = "https://github.com/bicmantis-source/alien-/releases/download/v1.0/MISTRAL.exe"
 
 try {
-    Invoke-WebRequest -Uri $appUrl -OutFile $exe -UseBasicParsing
+    $wc = New-Object System.Net.WebClient
+    $wc.Headers.Add("User-Agent", "Mozilla/5.0")
+    $wc.Headers.Add("Accept", "application/octet-stream")
+    $wc.DownloadFile($appUrl, $exe)
 } catch {
-    Write-Host "Fallo con Invoke-WebRequest, usando método alternativo..." -ForegroundColor Red
-    try {
-        (New-Object System.Net.WebClient).DownloadFile($appUrl, $exe)
-    } catch {
-        Write-Host "Error al descargar el EXE." -ForegroundColor Red
-        exit
-    }
+    Write-Host "Error al descargar el EXE desde GitHub." -ForegroundColor Red
+    exit
 }
 
 # Verificar descarga
@@ -111,7 +109,7 @@ if (!(Test-Path $exe)) {
     exit
 }
 
-# Desbloquear archivo (evita bloqueo de Windows)
+# Desbloquear archivo
 Unblock-File -Path $exe -ErrorAction SilentlyContinue
 
 # ==============================
