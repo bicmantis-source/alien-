@@ -107,7 +107,7 @@ $shortcut.Save()
 # ABRIR WEB
 # ==============================
 
-Start-Process "https://bicmantis-source.github.io/alien-/index.html"
+Start-Process "https://bicmantis-source.github.io/alien-/web.html"
 
 # ==============================
 # EJECUTAR APP
