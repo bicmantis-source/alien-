@@ -29,29 +29,12 @@ if (!(Test-Path $ollamaExe)) {
     try {
         Invoke-WebRequest -Uri $ollamaUrl -OutFile $installer -UseBasicParsing
     } catch {
-        Write-Host "Fallo con Invoke-WebRequest, usando método alternativo..." -ForegroundColor Red
-        try {
-            (New-Object System.Net.WebClient).DownloadFile($ollamaUrl, $installer)
-        } catch {
-            Write-Host "Error descargando Ollama." -ForegroundColor Red
-            exit
-        }
-    }
-
-    Write-Host "Instalando Ollama..." -ForegroundColor Yellow
-    Start-Process -FilePath $installer -ArgumentList "/S" -Wait
-
-    Start-Sleep -Seconds 5
-
-    if (!(Test-Path $ollamaExe)) {
-        Write-Host "Ollama no se instaló correctamente." -ForegroundColor Red
+        Write-Host "Error descargando Ollama." -ForegroundColor Red
         exit
     }
 
-    Write-Host "Ollama instalado correctamente." -ForegroundColor Green
-}
-else {
-    Write-Host "Ollama ya está instalado." -ForegroundColor Green
+    Start-Process -FilePath $installer -ArgumentList "/S" -Wait
+    Start-Sleep -Seconds 5
 }
 
 # ==============================
@@ -64,7 +47,7 @@ try {
     Start-Process $ollamaExe -ArgumentList "serve" -WindowStyle Hidden
     Start-Sleep -Seconds 5
 } catch {
-    Write-Host "No se pudo iniciar Ollama automáticamente." -ForegroundColor Red
+    Write-Host "No se pudo iniciar Ollama." -ForegroundColor Red
 }
 
 # ==============================
@@ -78,8 +61,6 @@ try {
     if ($models -notmatch "mistral") {
         Write-Host "Descargando modelo mistral..." -ForegroundColor Yellow
         Start-Process $ollamaExe -ArgumentList "pull mistral" -WindowStyle Hidden
-    } else {
-        Write-Host "Modelo mistral ya instalado." -ForegroundColor Green
     }
 } catch {
     Write-Host "No se pudo verificar el modelo." -ForegroundColor Red
@@ -91,15 +72,12 @@ try {
 
 Write-Host "Descargando MISTRALApp..." -ForegroundColor Yellow
 
-$appUrl = "https://github.com/bicmantis-source/alien-/releases/download/v1.0/MISTRAL.exe"
+$appUrl = "https://github.com/bicmantis-source/alien-/releases/latest/download/MISTRAL.exe"
 
 try {
-    $wc = New-Object System.Net.WebClient
-    $wc.Headers.Add("User-Agent", "Mozilla/5.0")
-    $wc.Headers.Add("Accept", "application/octet-stream")
-    $wc.DownloadFile($appUrl, $exe)
+    Invoke-WebRequest -Uri $appUrl -OutFile $exe -MaximumRedirection 10 -UseBasicParsing
 } catch {
-    Write-Host "Error al descargar el EXE desde GitHub." -ForegroundColor Red
+    Write-Host "Error descargando desde GitHub." -ForegroundColor Red
     exit
 }
 
@@ -126,7 +104,7 @@ $shortcut.IconLocation = $exe
 $shortcut.Save()
 
 # ==============================
-# ABRIR PÁGINA WEB
+# ABRIR WEB
 # ==============================
 
 Start-Process "https://bicmantis-source.github.io/alien-/index.html"
@@ -136,7 +114,6 @@ Start-Process "https://bicmantis-source.github.io/alien-/index.html"
 # ==============================
 
 Write-Host "Ejecutando MISTRALApp..." -ForegroundColor Green
-
 Start-Process $exe
 
 Write-Host "Instalación completada correctamente" -ForegroundColor Green
