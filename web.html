@@ -98,7 +98,8 @@
 
         <script>
 
-                const API_URL = "https://prudishly-humongous-cornbread.ngrok-free.dev/remote_ask";
+                // 🔥 CAMBIA ESTA URL CUANDO CAMBIE TU NGROK O SERVIDOR
+                const API_URL = "https://TU-NGROK-AQUI/remote_ask";
 
                 const chat = document.getElementById("chat");
                 const input = document.getElementById("msg");
@@ -130,27 +131,30 @@
 
                         try {
 
-                                let controller = new AbortController();
-                                let timeout = setTimeout(() => controller.abort(), 10000);
-
                                 let res = await fetch(API_URL, {
+
                                         method: "POST",
+
                                         headers: {
                                                 "Content-Type": "application/json"
                                         },
-                                        body: JSON.stringify({ msg: msg }),
-                                        signal: controller.signal
+
+                                        body: JSON.stringify({
+                                                msg: msg
+                                        })
                                 });
 
-                                clearTimeout(timeout);
-
                                 if (!res.ok) {
-                                        throw new Error("HTTP ERROR: " + res.status);
+                                        throw new Error("HTTP ERROR " + res.status);
                                 }
 
                                 let data = await res.json();
 
-                                addMessage("NEXA", data.response || "Sin respuesta", "ai");
+                                addMessage(
+                                        "NEXA",
+                                        data.response || "Sin respuesta",
+                                        "ai"
+                                );
 
                                 statusText.innerText = "CONNECTED";
 
@@ -160,7 +164,7 @@
 
                                 addMessage(
                                         "ERROR",
-                                        "No se pudo conectar con la IA (revisa ngrok o Flask)",
+                                        "No se pudo conectar con la IA",
                                         "ai"
                                 );
 
