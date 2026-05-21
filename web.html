@@ -10,7 +10,6 @@
         <style>
 
                 body {
-
                         background-color: #0f0f0f;
                         color: #00ffaa;
                         font-family: Consolas;
@@ -19,105 +18,64 @@
                 }
 
                 h2 {
-
                         color: #00ffaa;
                         text-shadow: 0px 0px 10px #00ffaa;
                 }
 
                 input {
-
                         width: 80%;
                         max-width: 700px;
-
                         padding: 14px;
-
                         background: black;
                         color: #00ffaa;
-
                         border: 1px solid #00ffaa;
-
                         outline: none;
-
                         font-size: 16px;
                 }
 
                 button {
-
                         padding: 12px 20px;
-
                         background: #00ffaa;
-
                         color: black;
-
                         border: none;
-
                         cursor: pointer;
-
                         margin-top: 10px;
-
                         font-size: 16px;
-
                         font-weight: bold;
                 }
 
                 button:hover {
-
                         opacity: 0.8;
                 }
 
                 #chat {
-
                         margin-top: 20px;
-
                         text-align: left;
-
                         max-width: 800px;
-
                         margin-left: auto;
                         margin-right: auto;
-
                         height: 500px;
-
                         overflow-y: auto;
-
                         border: 1px solid #00ffaa;
-
                         padding: 10px;
-
                         background: #111;
                 }
 
                 .msg {
-
                         margin-top: 10px;
-
                         padding: 12px;
-
                         border: 1px solid #00ffaa;
-
                         background: #181818;
-
                         white-space: pre-wrap;
-
                         word-wrap: break-word;
                 }
 
-                .user {
-
-                        color: #00ffaa;
-                }
-
-                .ai {
-
-                        color: #00ccff;
-                }
+                .user { color: #00ffaa; }
+                .ai { color: #00ccff; }
 
                 .status {
-
                         margin-top: 10px;
-
                         color: #888;
-
                         font-size: 14px;
                 }
 
@@ -129,21 +87,12 @@
 
         <h2>NEXA REMOTE</h2>
 
-        <input
-                id="msg"
-                placeholder="Escribe aquí..."
-                autocomplete="off"
-        >
-
+        <input id="msg" placeholder="Escribe aquí..." autocomplete="off">
         <br>
 
-        <button onclick="send()">
-                ENVIAR
-        </button>
+        <button onclick="send()">ENVIAR</button>
 
-        <div class="status" id="status">
-                REMOTE MODE READY
-        </div>
+        <div class="status" id="status">REMOTE MODE READY</div>
 
         <div id="chat"></div>
 
@@ -152,9 +101,7 @@
                 const API_URL = "https://prudishly-humongous-cornbread.ngrok-free.dev/remote_ask";
 
                 const chat = document.getElementById("chat");
-
                 const input = document.getElementById("msg");
-
                 const statusText = document.getElementById("status");
 
                 function addMessage(type, text, className) {
@@ -175,11 +122,7 @@
 
                         if (!msg) return;
 
-                        addMessage(
-                                "YOU",
-                                msg,
-                                "user"
-                        );
+                        addMessage("YOU", msg, "user");
 
                         input.value = "";
 
@@ -187,34 +130,37 @@
 
                         try {
 
+                                let controller = new AbortController();
+                                let timeout = setTimeout(() => controller.abort(), 10000);
+
                                 let res = await fetch(API_URL, {
-
                                         method: "POST",
-
                                         headers: {
                                                 "Content-Type": "application/json"
                                         },
-
-                                        body: JSON.stringify({
-                                                msg: msg
-                                        })
+                                        body: JSON.stringify({ msg: msg }),
+                                        signal: controller.signal
                                 });
+
+                                clearTimeout(timeout);
+
+                                if (!res.ok) {
+                                        throw new Error("HTTP ERROR: " + res.status);
+                                }
 
                                 let data = await res.json();
 
-                                addMessage(
-                                        "NEXA",
-                                        data.response || "Sin respuesta",
-                                        "ai"
-                                );
+                                addMessage("NEXA", data.response || "Sin respuesta", "ai");
 
                                 statusText.innerText = "CONNECTED";
 
                         } catch (err) {
 
+                                console.log(err);
+
                                 addMessage(
                                         "ERROR",
-                                        "No se pudo conectar con la IA",
+                                        "No se pudo conectar con la IA (revisa ngrok o Flask)",
                                         "ai"
                                 );
 
@@ -223,11 +169,7 @@
                 }
 
                 input.addEventListener("keypress", function(e) {
-
-                        if (e.key === "Enter") {
-
-                                send();
-                        }
+                        if (e.key === "Enter") send();
                 });
 
         </script>
