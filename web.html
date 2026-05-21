@@ -1,89 +1,237 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-    <title>NEXA REMOTE</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <style>
-        body {
-            background-color: #0f0f0f;
-            color: #00ffaa;
-            font-family: Consolas;
-            text-align: center;
-            padding: 20px;
-        }
+        <title>NEXA REMOTE</title>
 
-        input {
-            width: 80%;
-            padding: 10px;
-            background: black;
-            color: #00ffaa;
-            border: 1px solid #00ffaa;
-        }
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        button {
-            padding: 10px;
-            background: #00ffaa;
-            border: none;
-            cursor: pointer;
-            margin-top: 10px;
-        }
+        <style>
 
-        #chat {
-            margin-top: 20px;
-            white-space: pre-wrap;
-            text-align: left;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-    </style>
+                body {
+
+                        background-color: #0f0f0f;
+                        color: #00ffaa;
+                        font-family: Consolas;
+                        text-align: center;
+                        padding: 20px;
+                }
+
+                h2 {
+
+                        color: #00ffaa;
+                        text-shadow: 0px 0px 10px #00ffaa;
+                }
+
+                input {
+
+                        width: 80%;
+                        max-width: 700px;
+
+                        padding: 14px;
+
+                        background: black;
+                        color: #00ffaa;
+
+                        border: 1px solid #00ffaa;
+
+                        outline: none;
+
+                        font-size: 16px;
+                }
+
+                button {
+
+                        padding: 12px 20px;
+
+                        background: #00ffaa;
+
+                        color: black;
+
+                        border: none;
+
+                        cursor: pointer;
+
+                        margin-top: 10px;
+
+                        font-size: 16px;
+
+                        font-weight: bold;
+                }
+
+                button:hover {
+
+                        opacity: 0.8;
+                }
+
+                #chat {
+
+                        margin-top: 20px;
+
+                        text-align: left;
+
+                        max-width: 800px;
+
+                        margin-left: auto;
+                        margin-right: auto;
+
+                        height: 500px;
+
+                        overflow-y: auto;
+
+                        border: 1px solid #00ffaa;
+
+                        padding: 10px;
+
+                        background: #111;
+                }
+
+                .msg {
+
+                        margin-top: 10px;
+
+                        padding: 12px;
+
+                        border: 1px solid #00ffaa;
+
+                        background: #181818;
+
+                        white-space: pre-wrap;
+
+                        word-wrap: break-word;
+                }
+
+                .user {
+
+                        color: #00ffaa;
+                }
+
+                .ai {
+
+                        color: #00ccff;
+                }
+
+                .status {
+
+                        margin-top: 10px;
+
+                        color: #888;
+
+                        font-size: 14px;
+                }
+
+        </style>
+
 </head>
 
 <body>
 
-<h2>NEXA REMOTE</h2>
+        <h2>NEXA REMOTE</h2>
 
-<input id="msg" placeholder="Escribe aquí...">
-<br>
-<button onclick="send()">Enviar</button>
+        <input
+                id="msg"
+                placeholder="Escribe aquí..."
+                autocomplete="off"
+        >
 
-<div id="chat"></div>
+        <br>
 
-<script>
+        <button onclick="send()">
+                ENVIAR
+        </button>
 
-const API_URL = "https://prudishly-humongous-cornbread.ngrok-free.dev/ask";
+        <div class="status" id="status">
+                REMOTE MODE READY
+        </div>
 
-async function send() {
-    let msg = document.getElementById("msg").value;
+        <div id="chat"></div>
 
-    if (!msg) return;
+        <script>
 
-    document.getElementById("chat").innerText += "\nYOU: " + msg + "\n";
+                const API_URL = "https://prudishly-humongous-cornbread.ngrok-free.dev/remote_ask";
 
-    try {
-        let res = await fetch(API_URL, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ msg: msg })
-        });
+                const chat = document.getElementById("chat");
 
-        let data = await res.json();
+                const input = document.getElementById("msg");
 
-        document.getElementById("chat").innerText += 
-            "AI: " + (data.response || "sin respuesta") + "\n";
+                const statusText = document.getElementById("status");
 
-    } catch (err) {
-        document.getElementById("chat").innerText += 
-            "ERROR: no se pudo conectar con la IA\n";
-    }
+                function addMessage(type, text, className) {
 
-    document.getElementById("msg").value = "";
-}
+                        chat.innerHTML += `
+                                <div class="msg ${className}">
+                                        <b>${type}:</b><br><br>
+                                        ${text}
+                                </div>
+                        `;
 
-</script>
+                        chat.scrollTop = chat.scrollHeight;
+                }
+
+                async function send() {
+
+                        let msg = input.value.trim();
+
+                        if (!msg) return;
+
+                        addMessage(
+                                "YOU",
+                                msg,
+                                "user"
+                        );
+
+                        input.value = "";
+
+                        statusText.innerText = "NEXA THINKING...";
+
+                        try {
+
+                                let res = await fetch(API_URL, {
+
+                                        method: "POST",
+
+                                        headers: {
+                                                "Content-Type": "application/json"
+                                        },
+
+                                        body: JSON.stringify({
+                                                msg: msg
+                                        })
+                                });
+
+                                let data = await res.json();
+
+                                addMessage(
+                                        "NEXA",
+                                        data.response || "Sin respuesta",
+                                        "ai"
+                                );
+
+                                statusText.innerText = "CONNECTED";
+
+                        } catch (err) {
+
+                                addMessage(
+                                        "ERROR",
+                                        "No se pudo conectar con la IA",
+                                        "ai"
+                                );
+
+                                statusText.innerText = "OFFLINE";
+                        }
+                }
+
+                input.addEventListener("keypress", function(e) {
+
+                        if (e.key === "Enter") {
+
+                                send();
+                        }
+                });
+
+        </script>
 
 </body>
+
 </html>
